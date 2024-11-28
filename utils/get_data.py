@@ -21,7 +21,6 @@ def download_file(url, filename):
 
     # 如果没有 content-length，我们就不知道总大小，因此无法设置 total 参数
     total_size = response.headers.get('content-length')
-    # print(total_size)
     # 打开文件用于写入
     with open(filename, 'wb') as file:
         # 如果 total_size 存在，使用它，否则只显示手动进度
@@ -58,11 +57,9 @@ def get_extent_data(start=1979, end=2022):
     data['Day'] = data['Day'].astype(int)
     data['Extent'] = data['Extent'].astype(float)
 
-    # print(data.groupby('Year')['Extent'].idxmin())
     # 找到每一年海冰范围最小的那一天
     min_extent_per_year = data.loc[data.groupby('Year')['Extent'].idxmin()]
 
-    # print(list(min_extent_per_year.iterrows()))
     # 打印每一年最小海冰范围的日期和当前月份, 并下载相应数据
     base_url = 'https://noaadata.apps.nsidc.org/NOAA/G02135/north/daily/geotiff'
 
@@ -84,13 +81,9 @@ def get_extent_data(start=1979, end=2022):
             continue
         month = row['Month']
         day = row['Day']
-        # extent = row['Extent']
-        # print(f"Year: {year}, Month: {month}, Day: {day}, Sea Ice Extent: {extent:.3f} million sq km")
         day = f'{pos}_{year}{month:02d}{day:02d}'
         url = f'{base_url}/{year}/{month_mapping[month]}/{day}_extent_v3.0.tif'
-        # print(url)
         file_path = os.path.join(save_dir, os.path.basename(url))
-        # print(file_path)
         if not os.path.exists(file_path):
             download_file(url, file_path)
 
@@ -128,7 +121,6 @@ def validate_motion_data(start=1979, end=2023):
 
 
 def merge_data(file_path, days=365):
-    # motion_dir = 'motion/data'
     motion_dir = '../motion/data'
     nc_obj = Dataset(file_path, 'r')
     time_var = nc_obj.variables['time'][:]

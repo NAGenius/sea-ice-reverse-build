@@ -25,7 +25,6 @@ def write_data(latitudes, longitudes, days, save_path='../result/end/nc/test.nc'
     dataset.createDimension('lat', len(latitudes))  # 纬度的维度大小
     dataset.createDimension('lon', len(longitudes))  # 经度的维度大小
     dataset.createDimension('time', None)  # 时间维度可以是无限的
-    # print(f'有{365 - len(np.unique(latitudes))}天保持不动')
     # 创建变量（纬度、经度和时间）
     time_var = dataset.createVariable('time', 'f8', ('time',))
     latitudes_var = dataset.createVariable('lat', 'f4', ('lat',))

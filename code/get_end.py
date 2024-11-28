@@ -6,14 +6,11 @@ import numpy as np
 from pyproj import CRS, Transformer
 from geopy.distance import geodesic
 
-from utils.plot import plot_shadow
-# from utils.plot import plot_coordinates
-# from utils.write_data import write_data
+from utils.write_data import write_data
 
 
 base_date = datetime(1970, 1, 1)
 extent_dir = '../extent/data'  # 数据所在目录
-img_dir = '../result/end/img'
 nc_dir = '../result/end/nc'
 gdal.UseExceptions()  # 启用异常处理
 
@@ -62,9 +59,6 @@ def get_end(filename):
     transformer = Transformer.from_crs(source_crs, target_crs)  # 创建转换器
 
     lat, lon = coord2latlon(ice_indices, geotransform, transformer)
-    plot_shadow(lon, lat)
-    # 求出距离弗拉姆海峡最近的 cnt 个坐标
-    # points = get_nearest_points(lat, lon, cnt=cnt)
 
     points = []
     # 1. 找到离弗拉姆海峡最近的点的纬度作为阈值, 得到这一纬度上的点
@@ -73,9 +67,9 @@ def get_end(filename):
         print("Can't find the right spot!!!")
         return
 
-    for i in range(len(lat)):
-        if abs(lat[i] - lat_threshold) < 0.1 and fram_strait_lon_range[0] <= lon[i] <= fram_strait_lon_range[1]:
-            points.append((lat[i], lon[i]))
+    for j in range(len(lat)):
+        if abs(lat[j] - lat_threshold) < 0.1 and fram_strait_lon_range[0] <= lon[j] <= fram_strait_lon_range[1]:
+            points.append((lat[j], lon[j]))
     print(len(points))
     # 2. 找到靠近弗拉姆海峡的侧边海冰
     for row in range(ice_extent.shape[0]):
@@ -96,8 +90,6 @@ def get_end(filename):
 
 
 if __name__ == '__main__':
-    if not os.path.exists(img_dir):
-        os.mkdir(img_dir)
     if not os.path.exists(nc_dir):
         os.mkdir(nc_dir)
 
@@ -117,7 +109,5 @@ if __name__ == '__main__':
         days = []
         for i in time_data:
             days.append((datetime.strptime(i, '%Y-%m-%d') - base_date).days)
-        img_path = img_dir + '/' + item.name[2:6] + '.png'
         nc_path = nc_dir + '/' + item.name[2:6] + '.nc'
-        # plot_coordinates(y, x, img_path)
-        # write_data(x, y, days, nc_path)
+        write_data(x, y, days, nc_path)
