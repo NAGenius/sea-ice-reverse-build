@@ -128,6 +128,7 @@ def validate_motion_data(start=1979, end=2023):
 
 
 def merge_data(file_path, days=365):
+    # motion_dir = 'motion/data'
     motion_dir = '../motion/data'
     nc_obj = Dataset(file_path, 'r')
     time_var = nc_obj.variables['time'][:]
@@ -170,7 +171,6 @@ def merge_data(file_path, days=365):
         lon = np.concatenate([lon2, lon])
         u = np.concatenate([u2, u])
         v = np.concatenate([v2, v])
-    print(start_date, end_date, u.shape, v.shape, ends)
     return ends, lat, lon, u, v, x, y, crs_wkt, int(time_var[0])
 
 

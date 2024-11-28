@@ -37,12 +37,12 @@ def plot_path(path_all, save_path='../result/start/img/test.png'):
         lat, lon = np.array(dataset.variables['lat'][:]), np.array(dataset.variables['lon'][:])
         x, y = m(lon, lat)
         objs.append(m.scatter(x[0], y[0], s=1, marker='.', color='red', zorder=2))
-        if len(x) < 366:
-            objs.append(m.plot(x[0:-1], y[0:-1], '-', color='gray', linewidth=0.5)[0])
-            objs.append(m.scatter(x[-1], y[-1], s=1, marker='x', color='red', zorder=2))
-        else:
-            objs.append(m.plot(x[0:-1], y[0:-1], '-', color='blue', linewidth=0.5)[0])
-            objs.append(m.scatter(x[-1], y[-1], s=1, marker='.', c='red', zorder=2))
+        # if len(x) < 366:
+        #     objs.append(m.plot(x[0:-1], y[0:-1], '-', color='gray', linewidth=0.5)[0])
+        #     objs.append(m.scatter(x[-1], y[-1], s=1, marker='x', color='red', zorder=2))
+        # else:
+        objs.append(m.plot(x[0:-1], y[0:-1], '-', color='blue', linewidth=0.5, zorder=1)[0])
+        objs.append(m.scatter(x[-1], y[-1], s=1, marker='.', c='green', zorder=2))
 
     plt.savefig(save_path, dpi=1000)
     for obj in objs:

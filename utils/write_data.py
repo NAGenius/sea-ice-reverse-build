@@ -45,4 +45,4 @@ def write_data(latitudes, longitudes, days, save_path='../result/end/nc/test.nc'
 
     # 关闭文件
     dataset.close()
-    print(f"NetCDF file saved to {save_path}")
+    # print(f"NetCDF file saved to {save_path}")
