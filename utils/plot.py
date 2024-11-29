@@ -60,7 +60,7 @@ def plot_path(m, title, path_all, save_path='../result/start/img/test.png'):
 
 def plot_kde(m, title, lon, lat, save_path='../result/start/kde/test.png'):
     x, y = m(lon, lat)
-    sns.kdeplot(x=x, y=y, cmap="Reds", fill=True, bw=.15, cbar=True)
+    sns.kdeplot(x=x, y=y, cmap="Reds", fill=True, bw_method=0.15, cbar=True)
     plt.title(title)
     plt.savefig(save_path, dpi=1000)
     print(f"Img saved to {save_path}")

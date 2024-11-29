@@ -1,28 +1,20 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from osgeo import gdal
+
 import numpy as np
-from pyproj import CRS, Transformer
 from geopy.distance import geodesic
 
+from utils.get_data import read_tif, coord2latlon
 from utils.write_data import write_data
-
 
 base_date = datetime(1970, 1, 1)
 extent_dir = '../extent/data'  # 数据所在目录
 nc_dir = '../result/end/nc'
-gdal.UseExceptions()  # 启用异常处理
 
 fram_strait = (80.0, -5.0)  # 弗拉姆海峡坐标: 北纬80度, 西经5度
 fram_strait_lon_range = (-15.0, .0)  # 大致经度范围
 fram_strait_lon_range2 = (.0, 15.0)  # 大致经度范围
-
-
-def coord2latlon(coords, geotransform, transformer):
-    x_coords = geotransform[0] + coords[1] * geotransform[1] + coords[0] * geotransform[2]
-    y_coords = geotransform[3] + coords[0] * geotransform[5] + coords[1] * geotransform[4]
-    return transformer.transform(x_coords, y_coords)
 
 
 def get_nearest_points(lat, lon, cnt=10):
@@ -33,33 +25,7 @@ def get_nearest_points(lat, lon, cnt=10):
 
 
 def get_end(filename):
-    """
-    得到每年最小海冰范围的 `cnt` 个坐标
-    :param filename:
-    :return:
-    """
-    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
-
-    # width, height = dataset.RasterXSize, dataset.RasterYSize  # 宽高 304 448
-    # bands = dataset.RasterCount  # 波段数 1
-
-    band = dataset.GetRasterBand(1)  # 只有一个波段
-    # print(dataset.transform)  # 没有该属性
-    ice_extent = band.ReadAsArray()
-    # print(np.unique(ice_extent))  # [  0   1 253 254]
-    # print(ice_extent.shape)  # 448 304
-    ice_indices = np.where(ice_extent == 1)  # 得到有海冰的坐标
-
-    # 转换为当前的坐标体系下的坐标 起点+像元宽/高度+旋转
-    geotransform = dataset.GetGeoTransform()  # 获取地理变换参数 (-3850000.0, 25000.0, 0.0, 5850000.0, 0.0, -25000.0)
-    # 进行投影
-    projection = dataset.GetProjection()  # 获取投影信息, AUTHORITY["EPSG","3411"]
-    source_crs = CRS.from_wkt(projection)
-    target_crs = CRS.from_epsg(4326)  # 目标坐标系是WGS84（经纬度）
-    transformer = Transformer.from_crs(source_crs, target_crs)  # 创建转换器
-
-    lat, lon = coord2latlon(ice_indices, geotransform, transformer)
-
+    ice_extent, geotransform, transformer, lat, lon = read_tif(filename)
     points = []
     # 1. 找到离弗拉姆海峡最近的点的纬度作为阈值, 得到这一纬度上的点
     lat_threshold = get_nearest_points(lat, lon, 1)[0][0][0]
@@ -97,12 +63,11 @@ if __name__ == '__main__':
     # 使用 rglob() 递归遍历文件夹中的所有文件
     for item in folder_path.rglob('*.tif'):
         print(item.name[2:6] + '---------------------')
-        if item.name[2:6] != '2021':
-            continue
+        # if item.name[2:6] != '2022':
+        #     continue
         end_coord = get_end(item)
         for point in end_coord:
             print(f"坐标: {point}")
-
         x = [point[0] for point in end_coord]  # 纬度
         y = [point[1] for point in end_coord]  # 经度
         time_data = [f'{item.name[2:6]}-{item.name[6:8]}-{item.name[8:10]}']

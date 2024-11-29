@@ -17,8 +17,13 @@ def reverse(path_x, path_y, days_motion, days_idle):
     if days_motion == 365:
         cnt += 1
         path_lat, path_lon = transformer.transform(path_x, path_y)
+        lon_all.append(path_lon[-1])
+        lat_all.append(path_lat[-1])
         nc_path = start_nc_dir + '/' + year + '/' + str(cnt) + '.nc'
-        write_data(path_lat, path_lon, [days], nc_path)
+        time = []
+        for i in range(365, -1, -1):
+            time.append(days - i)
+        write_data(path_lat, path_lon, time, nc_path)
         return
     if days_idle >= 100:
         print(f'超过{days_idle}天处于无效值位置, 已漂流{days_motion}天')
@@ -57,8 +62,12 @@ def reverse(path_x, path_y, days_motion, days_idle):
                 path_y.pop()
         # 对于第i个点未找到其起点
         else:
+            path_x.append(path_x[-1])
+            path_y.append(path_y[-1])
             reverse(path_x, path_y, days_motion + 1, days_idle + 1)
     else:
+        path_x.append(path_x[-1])
+        path_y.append(path_y[-1])
         reverse(path_x, path_y, days_motion + 1, days_idle + 1)
     return
 
@@ -67,9 +76,12 @@ if __name__ == '__main__':
     folder_path = Path(end_nc_dir)
     resolution = 25000
     fill_value = -9999
+    lon_all, lat_all = [], []
     for item in folder_path.rglob('*.nc'):
         cnt = 0
         year = item.name[:4]
+        # if year != '1980':
+        #     continue
         if int(year) > 2022 or int(year) < 1980:
             continue
         print(year + "----------------------------------------------")
@@ -90,3 +102,4 @@ if __name__ == '__main__':
             sx, sy = transformer2.transform(end[0], end[1])
             reverse([sx], [sy], 0, 0)
         print(f'{year}年共有{cnt}个可能的起点')
+    write_data(lat_all, lon_all, [], start_nc_dir + '/' + 'all.nc')

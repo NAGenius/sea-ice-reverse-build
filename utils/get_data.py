@@ -6,7 +6,11 @@ import pandas as pd
 import requests
 from cftime import num2date
 from netCDF4 import Dataset
+from osgeo import gdal
+from pyproj import CRS, Transformer
 from tqdm import tqdm
+
+gdal.UseExceptions()  # 启用异常处理
 
 
 def download_file(url, filename):
@@ -105,6 +109,37 @@ def get_motion_data(start=1979, end=2023):
     print('Success!!!')
 
 
+def coord2latlon(coords, geotransform, transformer):
+    x_coords = geotransform[0] + coords[1] * geotransform[1] + coords[0] * geotransform[2]
+    y_coords = geotransform[3] + coords[0] * geotransform[5] + coords[1] * geotransform[4]
+    return transformer.transform(x_coords, y_coords)
+
+
+def read_tif(filename):
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+
+    # width, height = dataset.RasterXSize, dataset.RasterYSize  # 宽高 304 448
+    # bands = dataset.RasterCount  # 波段数 1
+
+    band = dataset.GetRasterBand(1)  # 只有一个波段
+    # print(dataset.transform)  # 没有该属性
+    ice_extent = band.ReadAsArray()
+    # print(np.unique(ice_extent))  # [  0   1 253 254]
+    # print(ice_extent.shape)  # 448 304
+    ice_indices = np.where(ice_extent == 1)  # 得到有海冰的坐标
+
+    # 转换为当前的坐标体系下的坐标 起点+像元宽/高度+旋转
+    geotransform = dataset.GetGeoTransform()  # 获取地理变换参数 (-3850000.0, 25000.0, 0.0, 5850000.0, 0.0, -25000.0)
+    # 进行投影
+    projection = dataset.GetProjection()  # 获取投影信息, AUTHORITY["EPSG","3411"]
+    source_crs = CRS.from_wkt(projection)
+    target_crs = CRS.from_epsg(4326)  # 目标坐标系是WGS84（经纬度）
+    transformer = Transformer.from_crs(source_crs, target_crs)  # 创建转换器
+
+    lat, lon = coord2latlon(ice_indices, geotransform, transformer)
+    return ice_extent, geotransform, transformer, lat, lon
+
+
 def validate_motion_data(start=1979, end=2023):
     motion_dir = '../motion/data'
     for i in range(start, end):
@@ -165,11 +200,10 @@ def merge_data(file_path, days=365):
         v = np.concatenate([v2, v])
     return ends, lat, lon, u, v, x, y, crs_wkt, int(time_var[0])
 
-
 # if __name__ == '__main__':
-    # get_extent_data()
-    # get_motion_data()
-    # validate_motion_data()
+# get_extent_data()
+# get_motion_data()
+# validate_motion_data()
 
 # 第1979年, 数据缺失天数: 0
 # 210 211 212 213
