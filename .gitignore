@@ -168,6 +168,8 @@ motion/
 img/
 images/
 extent/
+concentration/
+thickness/
 
 *.png
 tmp.txt

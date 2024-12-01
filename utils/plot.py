@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import rcParams
+from matplotlib.patches import Patch
 from mpl_toolkits.basemap import Basemap
 from netCDF4 import Dataset
 import seaborn as sns
@@ -8,7 +10,10 @@ import seaborn as sns
 
 # import matplotlib
 # matplotlib.use('Agg')
-plt.rc('font', family='Times New Roman')
+rcParams['font.family'] = 'Times New Roman, SimHei'
+rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+land_patch = Patch(color='lemonchiffon', label='陆地')
+ocean_patch = Patch(color='lightskyblue', label='海洋')
 
 
 def init_map():
@@ -25,8 +30,10 @@ def init_map():
 
 def plot_coordinates(m, title, lon, lat, save_path='../result/end/img/test.png'):
     x, y = m(lon, lat)
-    sc = plt.scatter(x, y, s=1, marker='.', color='red', zorder=2)
+    sc = plt.scatter(x, y, s=1, marker='.', color='red', zorder=2, label='终点')
     plt.title(title)
+    plt.legend(handles=[land_patch, ocean_patch, sc], loc='upper right', fontsize=8, framealpha=1.0,
+               handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.savefig(save_path, dpi=1000)
     sc.remove()
     print(f"Img saved to {save_path}")
@@ -34,7 +41,9 @@ def plot_coordinates(m, title, lon, lat, save_path='../result/end/img/test.png')
 
 def plot_shadow(m, title, lon, lat, save_path='../result/extent/test.png'):
     x, y = m(lon, lat)
-    sc = plt.scatter(x, y, s=1, marker='.', c='grey', zorder=1, alpha=0.5)
+    sc = plt.scatter(x, y, s=1, marker='.', c='grey', zorder=1, alpha=0.5, label='海冰范围')
+    plt.legend(handles=[land_patch, ocean_patch, sc], loc='upper right', fontsize=8, framealpha=1.0,
+               handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.title(title)
     plt.savefig(save_path, dpi=1000)
     sc.remove()
@@ -43,15 +52,21 @@ def plot_shadow(m, title, lon, lat, save_path='../result/extent/test.png'):
 
 def plot_path(m, title, path_all, save_path='../result/start/img/test.png'):
     objs = []
+    sc, sc2, line = None, None, None
     for path in path_all:
         dataset = Dataset(path)
         lat, lon = np.array(dataset.variables['lat'][:]), np.array(dataset.variables['lon'][:])
         x, y = m(lon, lat)
-        objs.append(m.scatter(x[0], y[0], s=1, marker='.', color='red', zorder=2))
-        objs.append(m.plot(x[0:-1], y[0:-1], '-', color='blue', linewidth=0.5, zorder=1)[0])
-        objs.append(m.scatter(x[-1], y[-1], s=1, marker='.', c='green', zorder=2))
+        sc = m.scatter(x[0], y[0], s=1, marker='.', color='red', zorder=2, label='终点')
+        sc2 = m.scatter(x[-1], y[-1], s=1, marker='.', c='green', zorder=2, label='起点')
+        line = m.plot(x[0:-1], y[0:-1], '-', color='blue', linewidth=0.5, zorder=1, label='路径')[0]
+        objs.append(sc)
+        objs.append(sc2)
+        objs.append(line)
 
     plt.title(title)
+    plt.legend(handles=[land_patch, ocean_patch, sc, sc2, line], loc='upper right', fontsize=8, framealpha=1.0,
+               handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.savefig(save_path, dpi=1000)
     for obj in objs:
         obj.remove()
@@ -61,6 +76,8 @@ def plot_path(m, title, path_all, save_path='../result/start/img/test.png'):
 def plot_kde(m, title, lon, lat, save_path='../result/start/kde/test.png'):
     x, y = m(lon, lat)
     sns.kdeplot(x=x, y=y, cmap="Reds", fill=True, bw_method=0.15, cbar=True)
+    plt.legend(handles=[land_patch, ocean_patch], loc='upper right', fontsize=8, framealpha=1.0,
+               handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.title(title)
     plt.savefig(save_path, dpi=1000)
     print(f"Img saved to {save_path}")

@@ -2,6 +2,8 @@ import hashlib
 import os
 import json
 
+from geopy.distance import geodesic
+
 
 def calculate_file_hash(file_path):
     """计算文件内容的哈希值（MD5）"""
@@ -36,3 +38,10 @@ def count_files(directory):
 
     result = json.dumps(result, indent=4, ensure_ascii=False)
     return result, total_files
+
+
+def get_nearest_points(lat, lon, target, cnt=10):
+    coordinates = list(zip(lat, lon))
+    dist = [(coord, geodesic(coord, target).kilometers) for coord in coordinates]
+    dist.sort(key=lambda tup: tup[1])
+    return dist[:cnt]

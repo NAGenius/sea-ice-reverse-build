@@ -19,9 +19,10 @@ def reverse(path_x, path_y, days_motion, days_idle):
         path_lat, path_lon = transformer.transform(path_x, path_y)
         lon_all.append(path_lon[-1])
         lat_all.append(path_lat[-1])
+        time_all.append(days - 365)
         nc_path = start_nc_dir + '/' + year + '/' + str(cnt) + '.nc'
         time = []
-        for i in range(365, -1, -1):
+        for i in range(0, 366):
             time.append(days - i)
         write_data(path_lat, path_lon, time, nc_path)
         return
@@ -76,11 +77,11 @@ if __name__ == '__main__':
     folder_path = Path(end_nc_dir)
     resolution = 25000
     fill_value = -9999
-    lon_all, lat_all = [], []
+    lon_all, lat_all, time_all = [], [], []
     for item in folder_path.rglob('*.nc'):
         cnt = 0
         year = item.name[:4]
-        # if year != '1980':
+        # if year != '1986':
         #     continue
         if int(year) > 2022 or int(year) < 1980:
             continue
@@ -102,4 +103,4 @@ if __name__ == '__main__':
             sx, sy = transformer2.transform(end[0], end[1])
             reverse([sx], [sy], 0, 0)
         print(f'{year}年共有{cnt}个可能的起点')
-    write_data(lat_all, lon_all, [], start_nc_dir + '/' + 'all.nc')
+    write_data(lat_all, lon_all, time_all, start_nc_dir + '/' + 'all.nc')
