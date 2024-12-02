@@ -24,7 +24,7 @@ month_mapping = {
 def download_file(url, filename):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                              'Chrome/129.0.0.0 Safari/537.36',
-               'Cookie': ''
+               'Cookie': 'CIsForCookie_OPS=f544cb93-adac-4772-879a-3cb0d4de1eaa'
                }
     response = requests.get(url, headers=headers, stream=True)
     chunk_size = 1024  # 每次读取 1024 字节
@@ -132,10 +132,10 @@ def get_thickness_data(start=2015, end=2022):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     for year in range(start, end + 1):
-        if year < 2018:  # 1015
+        if year < 2020:
             url = f'https://n5eil01u.ecs.nsidc.org/ICEBRIDGE/RDEFT4.001/{year}.09.15/RDEFT4_{year}1015.nc'
-        else:  # 0925
-            url = f'https://n5eil01u.ecs.nsidc.org/ICEBRIDGE/RDEFT4.001/{year}.09.15/RDEFT4_{year}0925.nc'
+        else:
+            url = f'https://n5eil01u.ecs.nsidc.org/ICEBRIDGE/RDEFT4.001/{year}.09.16/RDEFT4_{year}1015.nc'
         file_path = os.path.join(save_dir, f'{year}09.nc')
         if not os.path.exists(file_path):
             download_file(url, file_path)
@@ -296,3 +296,4 @@ if __name__ == '__main__':
     # get_concentration_data(time)
     get_thickness_data()
     # print(get_time_info())
+    pass
