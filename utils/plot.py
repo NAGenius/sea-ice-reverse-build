@@ -5,6 +5,7 @@ from matplotlib.patches import Patch
 from mpl_toolkits.basemap import Basemap
 from netCDF4 import Dataset
 import seaborn as sns
+import matplotlib.colors as mcolors
 # from scipy.stats import gaussian_kde
 
 
@@ -18,13 +19,20 @@ ocean_patch = Patch(color='lightskyblue', label='海洋')
 
 def init_map():
     # 创建地图
-    m = Basemap(llcrnrlon=-45.0, llcrnrlat=60.0, urcrnrlon=135.0, urcrnrlat=60.0,
+    m = Basemap(llcrnrlon=-45.0, llcrnrlat=75.0, urcrnrlon=135.0, urcrnrlat=75.0,
                 resolution='h', epsg=3408)
-    m.drawparallels(np.arange(50., 81., 10.), labels=[False, False, False, False])  # 纬度
+    m.drawparallels(np.arange(80., 91., 10.), labels=[False, False, False, False])  # 纬度
     m.drawmeridians(np.arange(0., 359., 45.), labels=[True, False, False, False])  # 经度
     m.drawmapboundary(fill_color='lightskyblue')  # 边界
     m.fillcontinents(color='lemonchiffon', lake_color='lightskyblue')  # 大陆内部填充颜色
     m.drawcoastlines(linewidth=0.3)  # 海岸线
+    # m = Basemap(llcrnrlon=-45.0, llcrnrlat=60.0, urcrnrlon=135.0, urcrnrlat=60.0,
+    #             resolution='h', epsg=3408)
+    # m.drawparallels(np.arange(50., 81., 10.), labels=[False, False, False, False])  # 纬度
+    # m.drawmeridians(np.arange(0., 359., 45.), labels=[True, False, False, False])  # 经度
+    # m.drawmapboundary(fill_color='lightskyblue')  # 边界
+    # m.fillcontinents(color='lemonchiffon', lake_color='lightskyblue')  # 大陆内部填充颜色
+    # m.drawcoastlines(linewidth=0.3)  # 海岸线
     return m
 
 
@@ -79,5 +87,17 @@ def plot_kde(m, title, lon, lat, save_path='../result/start/kde/test.png'):
     plt.legend(handles=[land_patch, ocean_patch], loc='upper right', fontsize=8, framealpha=1.0,
                handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.title(title)
+    plt.savefig(save_path, dpi=1000)
+    print(f"Img saved to {save_path}")
+
+
+def plot_heatmap(m, title, lon, lat, data, save_path='../result/start/heatmap.png'):
+    x, y = m(lon, lat)
+    norm = mcolors.PowerNorm(gamma=1.5, vmin=np.min(data), vmax=np.max(data))
+    scatter = m.scatter(x, y,  s=1, c=data, cmap='hot_r', marker='.', alpha=0.7, norm=norm)
+    plt.colorbar(scatter)
+    plt.title(title)
+    plt.legend(handles=[land_patch, ocean_patch], loc='upper right', fontsize=8, framealpha=1.0,
+               handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.savefig(save_path, dpi=1000)
     print(f"Img saved to {save_path}")

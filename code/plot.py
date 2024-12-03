@@ -80,7 +80,7 @@ if __name__ == '__main__':
     m = init_map()
     # m = None
     # plot_extent(m)  # 画海冰范围阴影图
-    plot_end(m)  # 画终点
-    plot_start(m)  # 画起点
+    # plot_end(m)  # 画终点
+    # plot_start(m)  # 画起点
     plot_kde(m)  # 画核密度
     # print(json.dumps(dic, indent=4))
