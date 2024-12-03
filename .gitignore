@@ -174,3 +174,4 @@ thickness/
 *.png
 tmp.txt
 test*.py
+*.nc

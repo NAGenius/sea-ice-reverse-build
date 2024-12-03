@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
+from time import sleep
 
 import numpy as np
 from netCDF4 import Dataset
+from pyproj import Proj, Transformer
 
 from utils.get_data import read_tif
 import utils.plot
@@ -19,6 +21,7 @@ def read_nc(file_path):
     nc_obj = Dataset(file_path, 'r')
     lat = np.array(nc_obj.variables['lat'][:])
     lon = np.array(nc_obj.variables['lon'][:])
+    nc_obj.close()
     return lon, lat
 
 
@@ -71,16 +74,50 @@ def plot_kde(_map=None):
     utils.plot.plot_kde(_map, 'KDE', lon, lat, img_path)
 
 
+def plot_heatmap(_map=None):
+    nc_obj = Dataset('../code/all.nc', 'r')
+    lats = np.array(nc_obj.variables['lat'][:])
+    lons = np.array(nc_obj.variables['lon'][:])
+    weights = np.array(nc_obj.variables['weight'][:])
+    nc_obj.close()
+    sorted_indices = np.argsort(weights)[::-1]
+    idx = sorted_indices[:10]
+    print(lats[idx], lons[idx])
+    pos = (-4524654.440396539, -4524654.440396539)
+    to3408 = Proj('epsg:3408')
+    transformer = Transformer.from_crs("epsg:3408", "epsg:4326")
+    x, y = to3408(lons, lats)
+    w, cnt = {}, {}
+    lon, lat, weight = [], [], []
+    for i in range(len(x)):
+        col, row = int((x[i] - pos[0]) / 25000), int((y[i] - pos[1]) / 25000)
+        w[(row, col)] = w.get((row, col), 0) + weights[i]
+        cnt[(row, col)] = cnt.get((row, col), 0) + 1
+    for key in w.keys():
+        weight.append(w[key] / cnt[key])
+        tmp_lat, tmp_lon = transformer.transform(pos[0] + 25000 * (key[1]), pos[1] + 25000 * (key[0]))
+        lon.append(tmp_lon)
+        lat.append(tmp_lat)
+    lon = np.array(lon)
+    lat = np.array(lat)
+    weight = np.array(weight)
+    sorted_indices = np.argsort(weight)[::-1]
+    idx = sorted_indices[:10]
+    print(lat[idx], lon[idx])
+    # utils.plot.plot_heatmap(_map, 'Heatmap', lon, lat, weight)
+
+
 if __name__ == '__main__':
     if not os.path.exists(kde_dir):
         os.mkdir(kde_dir)
     if not os.path.exists(shadow_dir):
         os.mkdir(shadow_dir)
     dic = {}
-    m = init_map()
-    # m = None
+    # m = init_map()
+    m = None
     # plot_extent(m)  # 画海冰范围阴影图
     # plot_end(m)  # 画终点
     # plot_start(m)  # 画起点
-    plot_kde(m)  # 画核密度
+    # plot_kde(m)  # 画核密度
+    plot_heatmap(m)
     # print(json.dumps(dic, indent=4))
