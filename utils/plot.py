@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from matplotlib import rcParams
 from matplotlib.patches import Patch
 from mpl_toolkits.basemap import Basemap
 from netCDF4 import Dataset
-import seaborn as sns
+
 # from scipy.stats import gaussian_kde
 
 
@@ -18,20 +19,20 @@ ocean_patch = Patch(color='lightskyblue', label='海洋')
 
 def init_map():
     # 创建地图
-    # m = Basemap(llcrnrlon=-45.0, llcrnrlat=75.0, urcrnrlon=135.0, urcrnrlat=75.0,
-    #             resolution='h', epsg=3408)
-    # m.drawparallels(np.arange(80., 91., 10.), labels=[False, False, False, False])  # 纬度
-    # m.drawmeridians(np.arange(0., 359., 45.), labels=[True, False, False, False])  # 经度
-    # m.drawmapboundary(fill_color='lightskyblue')  # 边界
-    # m.fillcontinents(color='lemonchiffon', lake_color='lightskyblue')  # 大陆内部填充颜色
-    # m.drawcoastlines(linewidth=0.3)  # 海岸线
-    m = Basemap(llcrnrlon=-45.0, llcrnrlat=60.0, urcrnrlon=135.0, urcrnrlat=60.0,
+    m = Basemap(llcrnrlon=-45.0, llcrnrlat=75.0, urcrnrlon=135.0, urcrnrlat=75.0,
                 resolution='h', epsg=3408)
-    m.drawparallels(np.arange(50., 81., 10.), labels=[False, False, False, False])  # 纬度
+    m.drawparallels(np.arange(80., 91., 10.), labels=[False, False, False, False])  # 纬度
     m.drawmeridians(np.arange(0., 359., 45.), labels=[True, False, False, False])  # 经度
     m.drawmapboundary(fill_color='lightskyblue')  # 边界
     m.fillcontinents(color='lemonchiffon', lake_color='lightskyblue')  # 大陆内部填充颜色
     m.drawcoastlines(linewidth=0.3)  # 海岸线
+    # m = Basemap(llcrnrlon=-45.0, llcrnrlat=60.0, urcrnrlon=135.0, urcrnrlat=60.0,
+    #             resolution='h', epsg=3408)
+    # m.drawparallels(np.arange(50., 81., 10.), labels=[False, False, False, False])  # 纬度
+    # m.drawmeridians(np.arange(0., 359., 45.), labels=[True, False, False, False])  # 经度
+    # m.drawmapboundary(fill_color='lightskyblue')  # 边界
+    # m.fillcontinents(color='lemonchiffon', lake_color='lightskyblue')  # 大陆内部填充颜色
+    # m.drawcoastlines(linewidth=0.3)  # 海岸线
     return m
 
 
@@ -90,14 +91,18 @@ def plot_kde(m, title, lon, lat, save_path='../result/start/kde/test.png'):
     print(f"Img saved to {save_path}")
 
 
-def plot_heatmap(m, title, lon, lat, data, save_path='../result/start/heatmap.png'):
+def plot_heatmap(m, title, lon, lat, data, save_path='../result/heatmap/all.png'):
     x, y = m(lon, lat)
-    scatter = m.scatter(x, y, c=data, s=10, marker='.', cmap='hot_r')
-    plt.colorbar(scatter)
+    sc = m.scatter(x, y, c=data, marker='o', cmap='hot_r')
+    cb = plt.colorbar(sc)
+    # scatter = m.scatter(x, y, c=data, s=10, marker='.', cmap='hot_r')
+    # plt.colorbar(scatter)
     # hb = m.hexbin(x, y, C=data, gridsize=50, cmap='hot_r', mincnt=1)
     # m.colorbar(hb)
     plt.title(title)
     plt.legend(handles=[land_patch, ocean_patch], loc='upper right', fontsize=8, framealpha=1.0,
                handleheight=0.8, handlelength=1.2, borderpad=0.5, handletextpad=1.5)
     plt.savefig(save_path, dpi=1000)
+    cb.remove()
+    sc.remove()
     print(f"Img saved to {save_path}")

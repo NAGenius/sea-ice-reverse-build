@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
-from time import sleep
+
+import os
+from pathlib import Path
 
 import numpy as np
 from netCDF4 import Dataset
 from pyproj import Proj, Transformer
 
-from utils.get_data import read_tif
 import utils.plot
-from utils.plot import plot_coordinates, plot_shadow, plot_path, init_map
+from utils.get_data import read_tif
+from utils.plot import plot_shadow
 
 end_dir = '../result/end'
 start_dir = '../result/start'
@@ -44,7 +46,7 @@ def plot_end(_map=None):
         lon, lat = read_nc(item)
         dic[item.name[:4]] = len(lon)
         img_path = img_dir + '/' + item.name[:4] + '.png'
-        plot_coordinates(_map, item.name[:4], lon, lat, img_path)
+        # plot_coordinates(_map, item.name[:4], lon, lat, img_path)
     # print(json.dumps(dic, indent=4))
 
 
@@ -61,8 +63,9 @@ def plot_start(_map=None):
             for _, _, files in os.walk(tmp):
                 files = [os.path.join(tmp, file) for file in files]
                 # dic[directory[:4]] = {'end': dic[directory[:4]], 'start': len(files)}
+                dic[directory[:4]] = len(files)
                 img_path = img_dir + '/' + directory[:4] + '.png'
-                plot_path(_map, directory[:4], files, img_path)
+                # plot_path(_map, directory[:4], files, img_path)
     # print(json.dumps(dic, indent=4))
 
 
@@ -75,35 +78,35 @@ def plot_kde(_map=None):
 
 
 def plot_heatmap(_map=None):
-    nc_obj = Dataset('../code/all.nc', 'r')
+    # nc_obj = Dataset('../code/all.nc', 'r')
+    nc_obj = Dataset('../code/all2.nc', 'r')
     lats = np.array(nc_obj.variables['lat'][:])
     lons = np.array(nc_obj.variables['lon'][:])
     weights = np.array(nc_obj.variables['weight'][:])
     nc_obj.close()
-    sorted_indices = np.argsort(weights)[::-1]
-    idx = sorted_indices[:10]
-    print(lats[idx], lons[idx])
     pos = (-4524654.440396539, -4524654.440396539)
+    resolution = 50000
     to3408 = Proj('epsg:3408')
     transformer = Transformer.from_crs("epsg:3408", "epsg:4326")
     x, y = to3408(lons, lats)
     w, cnt = {}, {}
     lon, lat, weight = [], [], []
     for i in range(len(x)):
-        col, row = int((x[i] - pos[0]) / 25000), int((y[i] - pos[1]) / 25000)
+        col, row = int((x[i] - pos[0]) / resolution), int((y[i] - pos[1]) / resolution)
         w[(row, col)] = w.get((row, col), 0) + weights[i]
         cnt[(row, col)] = cnt.get((row, col), 0) + 1
     for key in w.keys():
         weight.append(w[key] / cnt[key])
-        tmp_lat, tmp_lon = transformer.transform(pos[0] + 25000 * (key[1]), pos[1] + 25000 * (key[0]))
+        tmp_lat, tmp_lon = transformer.transform(pos[0] + resolution * (key[1]), pos[1] + resolution * (key[0]))
         lon.append(tmp_lon)
         lat.append(tmp_lat)
     lon = np.array(lon)
     lat = np.array(lat)
     weight = np.array(weight)
     sorted_indices = np.argsort(weight)[::-1]
-    idx = sorted_indices[:10]
-    print(lat[idx], lon[idx])
+    idx = sorted_indices[9:30]
+    print(list(zip(lon[idx], lat[idx], weight[idx])))
+    print(len(lat))
     # utils.plot.plot_heatmap(_map, 'Heatmap', lon, lat, weight)
 
 

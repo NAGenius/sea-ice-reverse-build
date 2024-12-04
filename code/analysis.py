@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # 权重设置
     conc_weight = 0.4
     thickness_weight = 0.6
-    alpha = 1.05
+    alpha = 1.01
     years = list(range(1979, 2023))
     tmp = alpha ** np.arange(len(years))
     tmp = tmp / tmp.sum()
